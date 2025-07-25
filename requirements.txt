@@ -1,0 +1,12 @@
+# Core data processing libraries
+polars==0.20.21
+pyspark==3.5.1
+numpy==1.26.4
+pyarrow==21.0.0
+
+# Test data generation
+faker==25.2.0
+
+# Utilities
+tqdm==4.66.4
+

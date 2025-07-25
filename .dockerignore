@@ -1,0 +1,34 @@
+# Git version control files
+.git
+.gitignore
+
+# Docker specific files
+Dockerfile
+.dockerignore
+
+# Python virtual environments (never copy these into an image)
+venv/
+.venv/
+env/
+*.env
+
+# Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Generated data directories
+# The container should always generate its own data when it runs.
+pipeline_data/
+
+# IDE and OS specific files that don't belong in the image
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Test reports and coverage files
+.pytest_cache/
+.coverage
+htmlcov/
