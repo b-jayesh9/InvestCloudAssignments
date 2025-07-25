@@ -126,6 +126,18 @@ All key parameters can be tuned in `config.py` without modifying the core logic:
 * Error Handling: Adding robust error handling and logging mechanisms to capture and report issues during processing.
 * Documentation: While this README provides an overview, more detailed inline comments and documentation for each module would enhance maintainability.
 
+## Things I did but found not suitable 
+* Used Spark for global aggregation, but it is not suitable for small data sets. It is better to use Polars for this task.
+* Used Polars for pre-processing, but it is not suitable for very large data sets. It is better to use Spark for this task.
+
+Due to this I ended up with a hybrid setup that can effectively manage load + give the best performance for the given task.
+
+## Output
+
+![img.png](img.png) Performance summary after running the pipeline on a sample dataset of 20 files, each 1 GB in size. The output includes the time taken for each phase, the number of records processed, and the final aggregated results.
+
+Pyspark on the other hand took almost similar time for csv parsing and deduplication for a much smaller dataset, when I ran the ETL Job as a Pyspark job.
+![img_1.png](img_1.png)
 
 ### Docker ( slight issue now)
 
