@@ -18,7 +18,7 @@ A streaming service generates hundreds of large CSV files daily (1–10 GB each)
 
 ## Key Features
 
-*   **Hybrid Architecture:** Uses the best tool for the job—Polars for speed and PySpark for scale.
+*   **Hybrid Architecture:** Uses the best tool for the job: Polars for speed and PySpark for scale.
 *   **Massively Parallel:** Processes multiple large CSV files simultaneously using all available CPU cores.
 *   **Scalable by Design:** Handles datasets much larger than system memory thanks to Spark's out-of-core processing.
 *   **Containerized & Portable:** Includes a `Dockerfile` for easy, dependency-free execution in any environment.
@@ -31,6 +31,54 @@ The pipeline uses a two-phase architecture to efficiently process data, starting
 
 ```
 [Input CSVs] -> Phase 1: Pre-processing (Polars) -> [Intermediate Parquet] -> Phase 2: Aggregation (Spark) -> [Final Parquet]
+```
+```mermaid
+graph TD
+    subgraph Input
+        A[Input CSVs]
+    end
+
+    subgraph Phase 1: Parallel Pre-processing
+        B(Orchestrator) -- Launches --> C{concurrent.futures.ProcessPoolExecutor};
+        C -- Assigns a CSV to each worker --> D[Worker 1 ];
+        C -- Assigns a CSV to each worker --> E[Worker 2 ];
+        C -- Assigns a CSV to each worker --> F[...];
+        C -- Assigns a CSV to each worker --> G[Worker N ];
+        A --o D;
+        A --o E;
+        A --o F;
+        A --o G;
+        D -- In-file Deduplication of log_id  <br> Enrich data with geo_region --> H[(Intermediate Parquet files)];
+        E -- In-file Deduplication of log_id  <br> Enrich data with geo_region--> H;
+        F -- In-file Deduplication of log_id <br> Enrich data with geo_region --> H;
+        G -- In-file Deduplication of log_id  <br> Enrich data with geo_region  --> H;
+    end
+
+    subgraph Phase 2: Global Aggregation 
+        I[Spark Session] -- Reads --> H;
+        I -- Performs distributed shuffle --> J{Global Deduplication <br> Global Aggregation };
+        J -- Writes --> K[(Final Parquet, 
+        partitioned by geo-region)];
+    end
+
+    subgraph Output
+        L[Analytics-Ready Data]
+    end
+
+    K --> L;
+
+    style A fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style H fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style K fill:#f9f9f9,stroke:#333,stroke-width:2px
+    style B fill:#d4e6f1,stroke:#333,stroke-width:2px
+    style I fill:#d4e6f1,stroke:#333,stroke-width:2px
+    style C fill:#e8daef,stroke:#333,stroke-width:2px
+    style D fill:#e6f1d4,stroke:#333,stroke-width:2px
+    style E fill:#e6f1d4,stroke:#333,stroke-width:2px
+    style F fill:#e6f1d4,stroke:#333,stroke-width:2px
+    style G fill:#e6f1d4,stroke:#333,stroke-width:2px
+    style J fill:#f1e4d4,stroke:#333,stroke-width:2px
+    style L fill:#d6eaf8,stroke:#333,stroke-width:2px
 ```
 
 ### Phase 1: Parallel Pre-processing (Polars)
@@ -127,17 +175,18 @@ All key parameters can be tuned in `config.py` without modifying the core logic:
 * Documentation: While this README provides an overview, more detailed inline comments and documentation for each module would enhance maintainability.
 
 ## Things I did but found not suitable 
-* Used Spark for global aggregation, but it is not suitable for small data sets. It is better to use Polars for this task.
-* Used Polars for pre-processing, but it is not suitable for very large data sets. It is better to use Spark for this task.
+* Used Polars for global aggregation, but it is not suitable for large data sets. It is better to use Spark for this task.
+* Used Spark for pre-processing, but it is not suitable for very large data sets, especially CSV files. It is better to use Polars for this task.
 
 Due to this I ended up with a hybrid setup that can effectively manage load + give the best performance for the given task.
+You can read more about the 
 
 ## Output
 
-![img.png](img.png) Performance summary after running the pipeline on a sample dataset of 20 files, each 1 GB in size. The output includes the time taken for each phase, the number of records processed, and the final aggregated results.
+![img.png](assets/img.png) Performance summary after running the pipeline on a sample dataset of 20 files, each 1 GB in size. The output includes the time taken for each phase, the number of records processed, and the final aggregated results.
 
 Pyspark on the other hand took almost similar time for csv parsing and deduplication for a much smaller dataset, when I ran the ETL Job as a Pyspark job.
-![img_1.png](img_1.png)
+![img_1.png](assets/img_1.png)
 
 ### Docker ( slight issue now)
 
