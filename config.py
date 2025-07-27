@@ -22,7 +22,7 @@ class PipelineConfig:
 
     # --- File Configuration ---
     # The name of the final aggregated file (directory in Spark's case)
-    FINAL_OUTPUT_NAME: str = "aggregated_user_activity.parquet"
+    FINAL_OUTPUT_NAME: str = "aggregated_user_activity"
 
     # --- Performance Tuning ---
     # Number of parallel processes for the pre-processing phase.

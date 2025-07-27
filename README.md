@@ -57,8 +57,7 @@ graph TD
     subgraph Phase 2: Global Aggregation 
         I[Spark Session] -- Reads --> H;
         I -- Performs distributed shuffle --> J{Global Deduplication <br> Global Aggregation };
-        J -- Writes --> K[(Final Parquet, 
-        partitioned by geo-region)];
+        J -- Writes --> K[(Final Parquet, partitioned by geo-region)];
     end
 
     subgraph Output
@@ -187,6 +186,35 @@ You can read more about the
 
 Pyspark on the other hand took almost similar time for csv parsing and deduplication for a much smaller dataset, when I ran the ETL Job as a Pyspark job.
 ![img_1.png](assets/img_1.png)
+
+### Visualization of Data using Duck DB 
+
+You can run queries against your data using harlequin and DuckDB, which creates an in-memory DB
+for short-term visualization needs.
+
+RUn the following command to start the harleqinu shell:
+```bash
+harlequin
+```
+
+Then you can run the following queries to visualize the data:
+
+
+```sql
+SELECT * FROM read_parquet('pipeline_data/output/aggregated_user_activity.parquet/*/*.parquet')                                
+```
+
+Group by geo_region and get the total watch time for each region:
+```sql
+SELECT geo_region, SUM(total_watch_time)                                                                                          
+FROM read_parquet('pipeline_data/output/aggregated_user_activity.parquet/*/*.parquet')                            
+GROUP BY geo_region;
+ORDER BY total_watch_time DESC;
+```
+
+
+
+
 
 ### Docker ( slight issue now)
 
